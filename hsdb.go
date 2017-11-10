@@ -113,10 +113,10 @@ func GenerateDataContainer(columnTypes []*sql.ColumnType) []interface{} {
 }
 
 // connstr := hld.HSSqlConn{}
-// connstr.Password = "pass"
-// connstr.Username = "XmasPartyAgent"
-// connstr.Database = "hsXmasparty2012"
-// connstr.Server = "itdcst02B.dev.hk.hld"
+// connstr.Password = ""
+// connstr.Username = ""
+// connstr.Database = ""
+// connstr.Server = ""
 // connstr.DisableEncrypt = true
 
 // log.Println(connstr.ConnectionString())

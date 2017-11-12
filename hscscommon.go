@@ -6,16 +6,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"unicode/utf16"
 	"unicode/utf8"
 )
 
-//HSTestString unicode test string including surrogated pairs
-const HSTestString = "English للغة العربية ภาษาไทย 中文𪛖𨳒中文简体 ウェブ全体から検索Русский язык"
+const (
+	//HSTestString unicode test string including surrogated pairs
+	HSTestString = "English للغة العربية ภาษาไทย 中文𪛖𨳒中文简体 ウェブ全体から検索Русский язык"
 
-const BOM_UTF8 = 1
-const BOM_UTF16LE = 2
-const BOM_UTF16BE = 3
+	//BOMUtf8 utf8 bom
+	BOMUtf8 = 1
+	//BOMUtf16 BOM
+	BOMUtf16 = 2
+	//BOMUtf16be BOM
+	BOMUtf16be = 3
+)
 
 //GetUTFBomType check if bytes have the UTF8 BOM mark, and return BOM len
 func GetUTFBomType(bytes []byte) (int, int) {
@@ -23,11 +29,11 @@ func GetUTFBomType(bytes []byte) (int, int) {
 	// 	return false
 	// }
 	if (len(bytes) >= 3) && (bytes[0] == 239) && (bytes[1] == 187) && (bytes[2] == 191) {
-		return BOM_UTF8, 3
+		return BOMUtf8, 3
 	} else if (len(bytes) >= 2) && (bytes[0] == 255) && (bytes[1] == 254) {
-		return BOM_UTF16LE, 2
+		return BOMUtf16, 2
 	} else if (len(bytes) >= 2) && (bytes[0] == 254) && (bytes[1] == 255) {
-		return BOM_UTF16BE, 2
+		return BOMUtf16be, 2
 	}
 	return 0, 0
 
@@ -97,14 +103,36 @@ func HSFileToString(filename string) (string, error) {
 
 	bomtype, bomlen := GetUTFBomType(data)
 	switch bomtype {
-	case BOM_UTF8:
+	case BOMUtf8:
 		return string(data[bomlen:]), nil
-	case BOM_UTF16LE:
+	case BOMUtf16:
 		return DecodeUTF16(data[bomlen:], binary.LittleEndian)
-	case BOM_UTF16BE:
+	case BOMUtf16be:
 		return DecodeUTF16(data[bomlen:], binary.BigEndian)
 	default:
 		return string(data), nil
 		//log.Println("default")
 	}
+}
+
+//HSStringList string list
+type HSStringList struct {
+	text      string
+	Lines     []string
+	lineBreak string
+}
+
+//AssignString assign string and linebreak, if linebreak is empty then linebreak will be "\n"
+func (sl *HSStringList) AssignString(text string, lineBreak string) {
+	sl.text = text
+	sl.lineBreak = lineBreak
+	if sl.lineBreak == "" {
+		sl.lineBreak = "\n"
+	}
+	sl.Lines = strings.Split(sl.text, sl.lineBreak)
+}
+
+//Count return number of line
+func (sl *HSStringList) Count() int {
+	return len(sl.Lines)
 }

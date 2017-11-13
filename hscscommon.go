@@ -136,3 +136,5 @@ func (sl *HSStringList) AssignString(text string, lineBreak string) {
 func (sl *HSStringList) Count() int {
 	return len(sl.Lines)
 }
+
+//test

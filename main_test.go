@@ -4,6 +4,18 @@ import (
 	"testing"
 )
 
+func BenchmarkChannelSync(b *testing.B) {
+	ch := make(chan int)
+	go func() {
+		for i := 0; i < b.N; i++ {
+			ch <- i
+		}
+		close(ch)
+	}()
+	for _ = range ch {
+	}
+}
+
 func TestAverages(t *testing.T) {
 	if !FileExists("./test/utf8.txt") {
 		t.Error("test text file is missing")

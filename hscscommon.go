@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 	"unicode/utf16"
 	"unicode/utf8"
 )
@@ -22,6 +23,13 @@ const (
 	//BOMUtf16be BOM
 	BOMUtf16be = 3
 )
+
+//JSTimeToTime JavaScript time to golang time
+func JSTimeToTime(t int64) time.Time {
+	//1510658333603 - get the most right 3 digits, and convert to nano second
+	//javascript time is only down to miliseconds
+	return time.Unix(t/1000, (t%1000)*1000*1000)
+}
 
 //GetUTFBomType check if bytes have the UTF8 BOM mark, and return BOM len
 func GetUTFBomType(bytes []byte) (int, int) {
@@ -92,26 +100,26 @@ func DecodeUTF16(b []byte, order binary.ByteOrder) (string, error) {
 
 //HSFileToString read text file into strings
 func HSFileToString(filename string) (string, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return "", err
-	}
+	if file, err := os.Open(filename); err == nil {
+		data, err := ioutil.ReadAll(file)
+		if err != nil {
+			return "", err
+		}
 
-	bomtype, bomlen := GetUTFBomType(data)
-	switch bomtype {
-	case BOMUtf8:
-		return string(data[bomlen:]), nil
-	case BOMUtf16:
-		return DecodeUTF16(data[bomlen:], binary.LittleEndian)
-	case BOMUtf16be:
-		return DecodeUTF16(data[bomlen:], binary.BigEndian)
-	default:
-		return string(data), nil
-		//log.Println("default")
+		bomtype, bomlen := GetUTFBomType(data)
+		switch bomtype {
+		case BOMUtf8:
+			return string(data[bomlen:]), nil
+		case BOMUtf16:
+			return DecodeUTF16(data[bomlen:], binary.LittleEndian)
+		case BOMUtf16be:
+			return DecodeUTF16(data[bomlen:], binary.BigEndian)
+		default:
+			return string(data), nil
+			//log.Println("default")
+		}
+	} else {
+		return "", err
 	}
 }
 
@@ -135,6 +143,15 @@ func (sl *HSStringList) AssignString(text string, lineBreak string) {
 //Count return number of line
 func (sl *HSStringList) Count() int {
 	return len(sl.Lines)
+}
+
+//LoadFromFile load strings from file
+func (sl *HSStringList) LoadFromFile(filename string) bool {
+	if s, err := HSFileToString(filename); err == nil {
+		sl.AssignString(s, "\n")
+		return true
+	}
+	return false
 }
 
 //test

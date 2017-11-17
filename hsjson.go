@@ -1,7 +1,10 @@
 package hld
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -59,4 +62,32 @@ type HSJsonResult struct {
 	P       float64                    `json:"p"`
 	Result  map[string]json.RawMessage `json:"result"`
 	Dt      int64                      `json:"dt"`
+}
+
+//SendJSONCmd Send JSON command and get the result
+func SendJSONCmd(cmd *HSJsonCommand, url string) (*HSJsonResult, error) {
+	var result HSJsonResult
+	var err error
+
+	httpClient := &http.Client{}
+	outData, err := cmd.ToJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(outData))
+	defer req.Body.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp, err := httpClient.Do(req); err == nil {
+		defer resp.Body.Close()
+		if data, err := ioutil.ReadAll(resp.Body); err == nil {
+			json.Unmarshal(data, &result)
+			return &result, nil
+		}
+	}
+	return nil, err
 }

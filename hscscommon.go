@@ -153,5 +153,3 @@ func (sl *HSStringList) LoadFromFile(filename string) bool {
 	}
 	return false
 }
-
-//test

@@ -43,10 +43,12 @@ func GenerateAESKeys() ([]byte, []byte) {
 	bytes, _ := GenerateRandomBytes(64)
 	sha := sha256.Sum256(bytes)
 
-	key := make([]byte, 16)
-	copy(key, sha[0:16])
+	key := make([]byte, 32)
+	copy(key, sha[0:32])
+	bytes, _ = GenerateRandomBytes(64)
+	sha = sha256.Sum256(bytes)
 	iv := make([]byte, 16)
-	copy(iv, sha[16:32])
+	copy(iv, sha[0:16])
 	return key, iv
 }
 

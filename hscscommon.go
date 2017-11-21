@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 	"unicode/utf16"
@@ -98,6 +99,19 @@ func DecodeUTF16(b []byte, order binary.ByteOrder) (string, error) {
 	return ret.String(), nil
 }
 
+//FileToBytes read text file byte, will omit the UTF BOM
+func FileToBytes(filename string) ([]byte, error) {
+	bytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	_, bomlen := GetUTFBomType(bytes)
+	if bomlen > 0 {
+		return bytes[bomlen:], nil
+	}
+	return bytes, nil
+}
+
 //HSFileToString read text file into strings
 func HSFileToString(filename string) (string, error) {
 	if file, err := os.Open(filename); err == nil {
@@ -152,4 +166,45 @@ func (sl *HSStringList) LoadFromFile(filename string) bool {
 		return true
 	}
 	return false
+}
+
+//ChangeFileExt change file extension
+func ChangeFileExt(filename string, ext string) string {
+	oldExt := filepath.Ext(filename)
+	if oldExt != "" {
+		return filename[0:len(filename)-len(oldExt)] + ext
+	}
+	return filename + ext
+}
+
+//CopyFile copy file
+func CopyFile(source string, target string) error {
+	file, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	buffSize := 32 * 1024
+	buffer := make([]byte, buffSize)
+
+	for {
+		n, err := file.Read(buffer)
+		if err != nil {
+			return err
+		}
+		if n > 0 {
+			w.Write(buffer[:n])
+		}
+		if n < buffSize {
+			break
+		}
+	}
+	return nil
 }

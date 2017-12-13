@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"log"
 )
 
 //PKCS5Padding pack PKCS5
@@ -39,12 +40,15 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 }
 
 //GenerateAESKeys generate random key/iv for AES
-func GenerateAESKeys() ([]byte, []byte) {
+func GenerateAESKeys(strength int) ([]byte, []byte) {
+	if (strength != 32) && (strength != 16) {
+		log.Fatal("AES Strength must be either 16 or 32")
+	}
 	bytes, _ := GenerateRandomBytes(64)
 	sha := sha256.Sum256(bytes)
 
-	key := make([]byte, 32)
-	copy(key, sha[0:32])
+	key := make([]byte, strength)
+	copy(key, sha[0:strength])
 	bytes, _ = GenerateRandomBytes(64)
 	sha = sha256.Sum256(bytes)
 	iv := make([]byte, 16)

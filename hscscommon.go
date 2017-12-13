@@ -99,6 +99,19 @@ func DecodeUTF16(b []byte, order binary.ByteOrder) (string, error) {
 	return ret.String(), nil
 }
 
+//BytesToFile bytes to file
+func BytesToFile(bytes []byte, filename string) error {
+
+	file, err := os.Create(filename)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+	_, err = file.Write(bytes)
+	return err
+
+}
+
 //FileToBytes read text file byte, will omit the UTF BOM
 func FileToBytes(filename string) ([]byte, error) {
 	bytes, err := ioutil.ReadFile(filename)
@@ -207,4 +220,13 @@ func CopyFile(source string, target string) error {
 		}
 	}
 	return nil
+}
+
+//AppendPathSlash append slash to a directory
+func AppendPathSlash(pathname string) string {
+	if (len(pathname) > 0) && (pathname[len(pathname)-1] != filepath.Separator) {
+		return pathname + "/"
+	}
+	return pathname
+
 }

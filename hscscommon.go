@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf16"
@@ -229,4 +230,35 @@ func AppendPathSlash(pathname string) string {
 	}
 	return pathname
 
+}
+
+//GetDirFiles get all files under a directory
+func GetDirFiles(dirname string, r bool) []string {
+	files, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return nil
+	}
+	dirname, _ = filepath.Abs(dirname)
+	var results []string
+	for _, file := range files {
+		if !file.IsDir() {
+			results = append(results, filepath.Join(dirname, file.Name()))
+		} else if r {
+			results = append(results, GetDirFiles(filepath.Join(dirname, file.Name()), r)...)
+
+		}
+	}
+	return results
+}
+
+//FilterFiles filter out file list by extension
+func FilterFiles(files []string, ext string) []string {
+	var outfiles []string
+	re := regexp.MustCompile(fmt.Sprintf("(.)\\.(?i)(%s)$", ext))
+	for _, file := range files {
+		if re.MatchString(file) {
+			outfiles = append(outfiles, file)
+		}
+	}
+	return outfiles
 }
